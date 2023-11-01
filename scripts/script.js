@@ -1,8 +1,13 @@
-const gameBoard = [
-  'x', null, null,
-  null, 'x', null,
-  null, null, null,
-]
+const gameBoard = (function() {
+  const board = [
+    'x', null, 'o',
+    null, 'x', null,
+    null, 'o', null,
+  ]
+
+  return { board }
+
+})();
 
 const displayController = (function() {
   // parse the board array and display markers
@@ -29,7 +34,7 @@ const displayController = (function() {
   }
 
   const populateBoard = function() {
-    gameBoard.forEach((element) => boardDiv.appendChild(createDiv(element)));
+    gameBoard.board.forEach((element) => boardDiv.appendChild(createDiv(element)));
   }
 
   const assignIcons = function() {
