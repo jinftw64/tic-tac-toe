@@ -6,7 +6,6 @@ const gameBoard = (function() {
   ]
 
   return { board }
-
 })();
 
 const displayController = (function() {
