@@ -1,8 +1,8 @@
 const gameBoard = (function() {
   const board = [
-    'x', null, 'o',
-    null, 'x', null,
-    null, 'o', null,
+    null, null, null,
+    null, null, null,
+    null, null, null,
   ]
 
   return { board }
@@ -59,5 +59,32 @@ const displayController = (function() {
   return { populateBoard, assignIcons }
 })();
 
-displayController.populateBoard();
-displayController.assignIcons();
+function createPlayer(name) {
+  const placeMarker = function() {
+    // stuff here
+  }
+
+  return { name, placeMarker };
+}
+
+const game = (function() {
+  let over = false;
+  let winner = null;
+  const players = [];
+
+  const start = function() {
+    // stuff here
+  }
+
+  const end = function() {
+    // stuff here
+  }
+
+  const checkTurn = function(array) {
+    // stuff jere
+  }
+
+  const checkWinOrTie = function() {
+    // stuff here
+  }
+})();
