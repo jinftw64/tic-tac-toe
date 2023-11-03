@@ -33,7 +33,10 @@ const displayController = (function() {
   }
 
   const populateBoard = function() {
-    gameBoard.board.forEach((element) => boardDiv.appendChild(createDiv(element)));
+    gameBoard.board.forEach((element, index) => {
+      boardDiv.appendChild(createDiv(element));
+      boardDiv.lastChild.setAttribute('id', index);
+    })
   }
 
   const assignIcons = function() {
@@ -88,3 +91,5 @@ const game = (function() {
     // stuff here
   }
 })();
+
+displayController.populateBoard();
