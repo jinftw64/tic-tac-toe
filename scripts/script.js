@@ -71,9 +71,9 @@ const displayController = (function() {
   const setUpMarkerEvents = function() {
     const allMarkers = document.querySelectorAll('.board > div');
     allMarkers.forEach((marker) => marker.addEventListener('click', function() {
-      marker.setAttribute('class', game.getCurrentMarker());
+      marker.setAttribute('class', game.getCurrentPlayer().marker);
+      game.getCurrentPlayer().markerHistory.push(marker.id);
       game.endTurn();
-      console.log(game.getCurrentMarker())
     }))
   }
 
@@ -82,8 +82,9 @@ const displayController = (function() {
 
 function createPlayer(name) {
   const marker = gameBoard.markers.shift();
+  const markerHistory = [];
 
-  return { name, marker };
+  return { name, marker, markerHistory };
 }
 
 const game = (function() {
@@ -91,10 +92,10 @@ const game = (function() {
   let winner = null;
   const player1 = createPlayer('test');
   const player2 = createPlayer('test2');
-  let currentMarker = player1.marker;
+  let currentPlayer = player1;
 
-  const getCurrentMarker = function() {
-    return currentMarker;
+  const getCurrentPlayer = function() {
+    return currentPlayer;
   }
 
   const start = function() {
@@ -107,18 +108,19 @@ const game = (function() {
   }
 
   const endTurn = function() {
-    if (currentMarker == player1.marker) {
-      currentMarker = player2.marker;
+    if (currentPlayer.marker == player1.marker) {
+      currentPlayer = player2;
     } else {
-      currentMarker = player1.marker;
+      currentPlayer = player1;
     }
   }
 
-  const checkWinOrTie = function() {
-    // stuff here
+  const checkWinOrTie = function(mark) {
+    const numOfSquares = 3;
+
   }
 
-  return { start, getCurrentMarker, endTurn, player1, player2 }
+  return { start, getCurrentPlayer, endTurn, player1, player2 }
 })();
 
 game.start();
