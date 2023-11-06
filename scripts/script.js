@@ -5,7 +5,9 @@ const gameBoard = (function() {
     null, null, null,
   ]
 
-  return { board }
+  const markers = ['x', 'o'];
+
+  return { board, markers }
 })();
 
 const displayController = (function() {
@@ -32,10 +34,17 @@ const displayController = (function() {
     return currentDiv;
   }
 
-  const populateBoard = function() {
+  const setUpBoard = function() {
     gameBoard.board.forEach((element, index) => {
       boardDiv.appendChild(createDiv(element));
       boardDiv.lastChild.setAttribute('id', index);
+    })
+  }
+
+
+  const populateBoard = function() {
+    gameBoard.board.forEach((element) => {
+      boardDiv.appendChild(createDiv(element));
     })
   }
 
@@ -59,37 +68,57 @@ const displayController = (function() {
     addImgElement(allOMarkers, oImagePath);
   }
 
-  return { populateBoard, assignIcons }
+  const setUpMarkerEvents = function() {
+    const allMarkers = document.querySelectorAll('.board > div');
+    allMarkers.forEach((marker) => marker.addEventListener('click', function() {
+      marker.setAttribute('class', game.getCurrentMarker());
+      game.endTurn();
+      console.log(game.getCurrentMarker())
+    }))
+  }
+
+  return { setUpBoard, populateBoard, assignIcons, setUpMarkerEvents }
 })();
 
 function createPlayer(name) {
-  const placeMarker = function() {
-    // stuff here
-  }
+  const marker = gameBoard.markers.shift();
 
-  return { name, placeMarker };
+  return { name, marker };
 }
 
 const game = (function() {
   let over = false;
   let winner = null;
-  const players = [];
+  const player1 = createPlayer('test');
+  const player2 = createPlayer('test2');
+  let currentMarker = player1.marker;
+
+  const getCurrentMarker = function() {
+    return currentMarker;
+  }
 
   const start = function() {
-    // stuff here
+    displayController.setUpBoard();
+    displayController.setUpMarkerEvents();
   }
 
   const end = function() {
     // stuff here
   }
 
-  const checkTurn = function(array) {
-    // stuff jere
+  const endTurn = function() {
+    if (currentMarker == player1.marker) {
+      currentMarker = player2.marker;
+    } else {
+      currentMarker = player1.marker;
+    }
   }
 
   const checkWinOrTie = function() {
     // stuff here
   }
+
+  return { start, getCurrentMarker, endTurn, player1, player2 }
 })();
 
-displayController.populateBoard();
+game.start();
