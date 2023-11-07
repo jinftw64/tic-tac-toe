@@ -116,7 +116,7 @@ const game = (function() {
   }
 
   const checkWinOrTie = function(mark) {
-    const numOfSquares = 3;
+    const winConditions = new Set(['012', '345', '678', '036', '147', '258', '048', '246'])
 
   }
 
