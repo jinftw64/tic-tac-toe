@@ -48,6 +48,12 @@ const displayController = (function() {
     })
   }
 
+  const updateBoardArray = function(markerDiv) {
+    const id = markerDiv.id;
+    const marker = markerDiv.className;
+    gameBoard.board.splice(id, 1, marker);
+  }
+
   const assignIcons = function() {
     const allXMarkers = document.querySelectorAll('.x');
     const allOMarkers = document.querySelectorAll('.o');
@@ -72,19 +78,19 @@ const displayController = (function() {
     const allMarkers = document.querySelectorAll('.board > div');
     allMarkers.forEach((marker) => marker.addEventListener('click', function() {
       marker.setAttribute('class', game.getCurrentPlayer().marker);
-      game.getCurrentPlayer().markerHistory.push(marker.id);
+      updateBoardArray(marker);
+      game.checkWinOrTie();
       game.endTurn();
     }))
   }
 
-  return { setUpBoard, populateBoard, assignIcons, setUpMarkerEvents }
+  return { setUpBoard, populateBoard, assignIcons, setUpMarkerEvents, updateBoardArray }
 })();
 
 function createPlayer(name) {
   const marker = gameBoard.markers.shift();
-  const markerHistory = [];
 
-  return { name, marker, markerHistory };
+  return { name, marker };
 }
 
 const game = (function() {
@@ -115,12 +121,35 @@ const game = (function() {
     }
   }
 
-  const checkWinOrTie = function(mark) {
-    const winConditions = new Set(['012', '345', '678', '036', '147', '258', '048', '246'])
+  const checkWinOrTie = function() {
+    const winningConditions = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+    for (let i = 0; i <= 7; i++) {
+      const winCondition = winningConditions[i];
+      let a = gameBoard.board[winCondition[0]];
+      let b = gameBoard.board[winCondition[1]];
+      let c = gameBoard.board[winCondition[2]];
+
+      if (a === null || b === null || c === null) {
+        continue;
+      }
+
+      if (a === b && b === c) {
+        console.log(`${game.getCurrentPlayer().name} won`);
+      }
+    }
 
   }
 
-  return { start, getCurrentPlayer, endTurn, player1, player2 }
+  return { start, getCurrentPlayer, endTurn, checkWinOrTie, player1, player2 }
 })();
 
 game.start();
