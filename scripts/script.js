@@ -1,147 +1,3 @@
-// const displayController = (function() {
-//   // parse the board array and display markers
-//   const boardDiv = document.querySelector('.board');
-//
-//   const createDiv = function(element) {
-//     let divClass = null;
-//     const currentDiv = document.createElement('div');
-//
-//     switch (element) {
-//       case 'x':
-//         divClass = 'x';
-//         break;
-//       case 'o':
-//         divClass = 'o';
-//         break
-//       default:
-//         divClass = 'blank';
-//     }
-//
-//     currentDiv.classList.add(divClass);
-//
-//     return currentDiv;
-//   }
-//
-//   const setUpBoard = function() {
-//     gameBoard.board.forEach((element, index) => {
-//       boardDiv.appendChild(createDiv(element));
-//       boardDiv.lastChild.setAttribute('id', index);
-//     })
-//   }
-//
-//
-//   const populateBoard = function() {
-//     gameBoard.board.forEach((element) => {
-//       boardDiv.appendChild(createDiv(element));
-//     })
-//   }
-//
-//   const updateBoardArray = function(markerDiv) {
-//     const id = markerDiv.id;
-//     const marker = markerDiv.className;
-//     gameBoard.board.splice(id, 1, marker);
-//   }
-//
-//   const assignIcons = function() {
-//     const allXMarkers = document.querySelectorAll('.x');
-//     const allOMarkers = document.querySelectorAll('.o');
-//
-//     const xImagePath = '../images/close-thick.svg';
-//     const oImagePath = '../images/circle-outline.svg';
-//
-//     const addImgElement = function(array, imagePath) {
-//
-//       array.forEach(function(element) {
-//         const img = document.createElement('img');
-//         img.src = imagePath;
-//         element.appendChild(img);
-//       })
-//     }
-//
-//     addImgElement(allXMarkers, xImagePath);
-//     addImgElement(allOMarkers, oImagePath);
-//   }
-//
-//   const setUpMarkerEvents = function() {
-//     const allMarkers = document.querySelectorAll('.board > div');
-//     allMarkers.forEach((marker) => marker.addEventListener('click', function() {
-//       marker.setAttribute('class', game.getCurrentPlayer().marker);
-//       updateBoardArray(marker);
-//       game.checkWinOrTie();
-//       game.endTurn();
-//     }))
-//   }
-//
-//   return { setUpBoard, populateBoard, assignIcons, setUpMarkerEvents, updateBoardArray }
-// })();
-//
-// function createPlayer(name) {
-//   const marker = gameBoard.markers.shift();
-//
-//   return { name, marker };
-// }
-//
-// const game = (function() {
-//   let over = false;
-//   let winner = null;
-//   const player1 = createPlayer('test');
-//   const player2 = createPlayer('test2');
-//   let currentPlayer = player1;
-//
-//   const getCurrentPlayer = function() {
-//     return currentPlayer;
-//   }
-//
-//   const start = function() {
-//     displayController.setUpBoard();
-//     displayController.setUpMarkerEvents();
-//   }
-//
-//   const end = function() {
-//     // stuff here
-//   }
-//
-//   const endTurn = function() {
-//     if (currentPlayer.marker == player1.marker) {
-//       currentPlayer = player2;
-//     } else {
-//       currentPlayer = player1;
-//     }
-//   }
-//
-//   const checkWinOrTie = function() {
-//     const winningConditions = [
-//       [0, 1, 2],
-//       [3, 4, 5],
-//       [6, 7, 8],
-//       [0, 3, 6],
-//       [1, 4, 7],
-//       [2, 5, 8],
-//       [0, 4, 8],
-//       [2, 4, 6]
-//     ];
-//     for (let i = 0; i <= 7; i++) {
-//       const winCondition = winningConditions[i];
-//       let a = gameBoard.board[winCondition[0]];
-//       let b = gameBoard.board[winCondition[1]];
-//       let c = gameBoard.board[winCondition[2]];
-//
-//       if (a === null || b === null || c === null) {
-//         continue;
-//       }
-//
-//       if (a === b && b === c) {
-//         console.log(`${game.getCurrentPlayer().name} won`);
-//       }
-//     }
-//
-//   }
-//
-//   return { start, getCurrentPlayer, endTurn, checkWinOrTie, player1, player2 }
-// })();
-//
-// game.start();
-
 const events = {
   events: {},
   on: function(eventName, fn) {
@@ -167,13 +23,25 @@ const events = {
   }
 }
 
+
 const gameBoard = (function() {
   const board = [];
 
+  for (let i = 0; i < 9; i++) {
+    board.push(Cell());
+  }
+
   const getBoard = () => board;
 
-  return { getBoard }
+  const dropToken = (index, player) => {
+    if (board[index].getValue() !== 0) return;
+
+    board[index].addToken(player);
+  }
+
+  return { getBoard, dropToken }
 })();
+
 
 function Cell() {
   let value = 0;
@@ -181,14 +49,84 @@ function Cell() {
   const addToken = (player) => {
     value = player;
   }
+
+  const getValue = () => value;
+
+  return { addToken, getValue };
 }
 
 
-const gameController = (function() {
-  // pass
-})();
+function GameController(
+  player1Name = 'player 1',
+  player2Name = 'player 2'
+) {
+  const players = [
+    {
+      name: player1Name,
+      token: 'x'
+    },
+    {
+      name: player2Name,
+      token: 'o'
+    }
+
+  ];
+
+  let activePlayer = players[0];
+
+  const switchPlayerTurn = () => {
+    activePlayer = (activePlayer === players[0]) ? players[1] : players[0];
+  }
+
+  const getActivePlayer = () => activePlayer;
+
+  const playRound = (index) => {
+    gameBoard.dropToken(index, getActivePlayer().token)
+    if (checkWin()) {
+      console.log(`${getActivePlayer().name} has won`);
+    }
+    switchPlayerTurn();
+    console.log(`${getActivePlayer().name} turn now`);
+  }
+
+  const checkWin = () => {
+    const boardArray = gameBoard.getBoard();
+    const winConditions = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ]
+
+    for (let i = 0; i <= 7; i++) {
+      const winCondition = winConditions[i];
+
+      let a = boardArray[winCondition[0]].getValue();
+      let b = boardArray[winCondition[1]].getValue();
+      let c = boardArray[winCondition[2]].getValue();
+
+      if (a === 0 || b === 0 || c === 0) {
+        continue
+      }
+
+      if (a === b && b === c) {
+        return true
+      }
+
+      return false;
+    }
+  }
+
+  return { getActivePlayer, playRound }
+}
 
 
 const displayController = (function() {
   // pass
 })();
+
+const game = GameController();
