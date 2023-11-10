@@ -168,36 +168,27 @@ const events = {
 }
 
 const gameBoard = (function() {
-  const board = [
-    null, null, null,
-    null, null, null,
-    null, null, null,
-  ]
+  const board = [];
 
-  const markers = ['x', 'o'];
+  const getBoard = () => board;
 
-  return { board, markers }
+  return { getBoard }
 })();
 
+function Cell() {
+  let value = 0;
 
-const game = (function() {
-  let currentPlayer;
-  const players = [];
-
-  const start = function() {
-    players.push(createPlayer('player1'));
-    players.push(createPlayer('player2'));
-    players[0].next = players[1];
-    players[1].next = players[0];
+  const addToken = (player) => {
+    value = player;
   }
-})();
-
-function createPlayer(name) {
-  let next;
-  const marker = gameBoard.markers.shift();
-
-  const endTurn = function() {
-    events.emit('endTurn', name);
-  }
-  return { name, marker, next };
 }
+
+
+const gameController = (function() {
+  // pass
+})();
+
+
+const displayController = (function() {
+  // pass
+})();
