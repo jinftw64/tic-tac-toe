@@ -1,34 +1,10 @@
-const events = {
-  events: {},
-  on: function(eventName, fn) {
-    this.events[eventName] = this.events[eventName] || [];
-    this.events[eventName].push(fn);
-  },
-  off: function(eventName, fn) {
-    if (this.events[eventName]) {
-      for (let i = 0; i < this.events[eventName].length; i++) {
-        if (this.events[eventName][i] === fn) {
-          this.events[eventName].splice(i, 1);
-          break;
-        }
-      }
-    }
-  },
-  emit: function(eventName, data) {
-    if (this.events[eventName]) {
-      this.events[eventName].forEach(function(fn) {
-        fn(data);
-      })
-    }
-  }
-}
-
-
 const gameBoard = (function() {
   const board = [];
 
-  for (let i = 0; i < 9; i++) {
-    board.push(Cell());
+  const setupBoard = () => {
+    for (let i = 0; i < 9; i++) {
+      board.push(Cell());
+    }
   }
 
   const getBoard = () => board;
@@ -39,7 +15,13 @@ const gameBoard = (function() {
     board[index].addToken(player);
   }
 
-  return { getBoard, dropToken }
+  const clearBoard = () => {
+    board.length = 0;
+  }
+
+  setupBoard();
+
+  return { setupBoard, getBoard, dropToken, clearBoard }
 })();
 
 
@@ -63,14 +45,18 @@ function GameController(
   const players = [
     {
       name: player1Name,
-      token: 'x'
+      token: 'x',
+      score: 0
     },
     {
       name: player2Name,
-      token: 'o'
+      token: 'o',
+      score: 0
     }
 
   ];
+
+  const dialog = document.querySelector('dialog');
 
   let activePlayer = players[0];
 
@@ -80,13 +66,18 @@ function GameController(
 
   const getActivePlayer = () => activePlayer;
 
+  const getScores = () => {
+    return [players[0].score, players[1].score]
+  }
+
   const playRound = (index) => {
     gameBoard.dropToken(index, getActivePlayer().token)
     if (checkWin()) {
-      console.log(`${getActivePlayer().name} has won`);
+      getActivePlayer().score++
+      dialog.showModal();
+    } else {
+      switchPlayerTurn();
     }
-    switchPlayerTurn();
-    console.log(`${getActivePlayer().name} turn now`);
   }
 
   const checkWin = () => {
@@ -116,17 +107,72 @@ function GameController(
       if (a === b && b === c) {
         return true
       }
-
-      return false;
     }
+    return false;
   }
 
-  return { getActivePlayer, playRound }
+  const reset = () => {
+    gameBoard.clearBoard();
+    gameBoard.setupBoard();
+    activePlayer = players[0];
+  }
+
+  return { getActivePlayer, getScores, playRound, reset }
 }
 
 
 const displayController = (function() {
-  // pass
-})();
+  const game = GameController();
 
-const game = GameController();
+  const boardDiv = document.querySelector('.board');
+  const playerTurnDiv = document.querySelector('.playerTurn');
+  const score = document.querySelector('.score');
+  const dialog = document.querySelector('dialog');
+  const anotherRoundButton = document.querySelector('.another');
+
+  const updateScreen = () => {
+    boardDiv.textContent = '';
+    score.textContent = `Player 1: ${game.getScores()[0]} Player 2: ${game.getScores()[1]}`
+
+    const board = gameBoard.getBoard();
+    const currentPlayer = game.getActivePlayer();
+
+    playerTurnDiv.textContent = `Player ${currentPlayer.name}'s turn now`;
+
+    board.forEach((square, index) => {
+      const button = document.createElement('button');
+      button.classList.add('cell');
+      button.dataset.index = index;
+      button.textContent = board[index].getValue() === 0 ? '' : board[index].getValue();
+
+      boardDiv.appendChild(button);
+    })
+  }
+
+  const removeBoardChildren = () => {
+    while (boardDiv.firstChild) {
+      boardDiv.removeChild(boardDiv.firstChild)
+    }
+  }
+
+  function clickHandler(e) {
+    const selectedCell = e.target.dataset.index;
+
+    if (!selectedCell) return;
+
+    game.playRound(selectedCell);
+    updateScreen();
+  }
+
+  boardDiv.addEventListener('click', clickHandler)
+
+  anotherRoundButton.addEventListener('click', () => {
+    dialog.close();
+    game.reset();
+    removeBoardChildren();
+    updateScreen();
+  })
+
+  updateScreen();
+
+})();
