@@ -10,9 +10,11 @@ const gameBoard = (function() {
   const getBoard = () => board;
 
   const dropToken = (index, player) => {
-    if (board[index].getValue() !== 0) return;
+    if (board[index].getValue() !== 0) return false;
 
     board[index].addToken(player);
+
+    return true;
   }
 
   const clearBoard = () => {
@@ -71,7 +73,7 @@ function GameController(
   }
 
   const playRound = (index) => {
-    gameBoard.dropToken(index, getActivePlayer().token)
+    if (!gameBoard.dropToken(index, getActivePlayer().token)) return;
     if (checkWin()) {
       getActivePlayer().score++
       dialog.showModal();
