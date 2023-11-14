@@ -119,7 +119,13 @@ function GameController(
     activePlayer = players[0];
   }
 
-  return { getActivePlayer, getScores, playRound, reset }
+  const newGame = () => {
+    reset();
+    players[0].score = 0;
+    players[1].score = 0;
+  }
+
+  return { getActivePlayer, getScores, playRound, reset, newGame }
 }
 
 
@@ -131,6 +137,7 @@ const displayController = (function() {
   const score = document.querySelector('.score');
   const dialog = document.querySelector('dialog');
   const anotherRoundButton = document.querySelector('.another');
+  const reset = document.querySelector('.reset');
 
   const updateScreen = () => {
     boardDiv.textContent = '';
@@ -171,6 +178,12 @@ const displayController = (function() {
   anotherRoundButton.addEventListener('click', () => {
     dialog.close();
     game.reset();
+    removeBoardChildren();
+    updateScreen();
+  })
+
+  reset.addEventListener('click', () => {
+    game.newGame();
     removeBoardChildren();
     updateScreen();
   })
