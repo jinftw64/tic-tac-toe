@@ -1,90 +1,193 @@
 const gameBoard = (function() {
-  const board = [
-    null, null, null,
-    null, null, null,
-    null, null, null,
-  ]
+  const board = [];
 
-  return { board }
+  const setupBoard = () => {
+    for (let i = 0; i < 9; i++) {
+      board.push(Cell());
+    }
+  }
+
+  const getBoard = () => board;
+
+  const dropToken = (index, player) => {
+    if (board[index].getValue() !== 0) return false;
+
+    board[index].addToken(player);
+
+    return true;
+  }
+
+  const clearBoard = () => {
+    board.length = 0;
+  }
+
+  setupBoard();
+
+  return { setupBoard, getBoard, dropToken, clearBoard }
 })();
 
-const displayController = (function() {
-  // parse the board array and display markers
-  const boardDiv = document.querySelector('.board');
 
-  const createDiv = function(element) {
-    let divClass = null;
-    const currentDiv = document.createElement('div');
+function Cell() {
+  let value = 0;
 
-    switch (element) {
-      case 'x':
-        divClass = 'x';
-        break;
-      case 'o':
-        divClass = 'o';
-        break
-      default:
-        divClass = 'blank';
-    }
-
-    currentDiv.classList.add(divClass);
-
-    return currentDiv;
+  const addToken = (player) => {
+    value = player;
   }
 
-  const populateBoard = function() {
-    gameBoard.board.forEach((element) => boardDiv.appendChild(createDiv(element)));
-  }
+  const getValue = () => value;
 
-  const assignIcons = function() {
-    const allXMarkers = document.querySelectorAll('.x');
-    const allOMarkers = document.querySelectorAll('.o');
-
-    const xImagePath = '../images/close-thick.svg';
-    const oImagePath = '../images/circle-outline.svg';
-
-    const addImgElement = function(array, imagePath) {
-
-      array.forEach(function(element) {
-        const img = document.createElement('img');
-        img.src = imagePath;
-        element.appendChild(img);
-      })
-    }
-
-    addImgElement(allXMarkers, xImagePath);
-    addImgElement(allOMarkers, oImagePath);
-  }
-
-  return { populateBoard, assignIcons }
-})();
-
-function createPlayer(name) {
-  const placeMarker = function() {
-    // stuff here
-  }
-
-  return { name, placeMarker };
+  return { addToken, getValue };
 }
 
-const game = (function() {
-  let over = false;
-  let winner = null;
-  const players = [];
 
-  const start = function() {
-    // stuff here
+function GameController(
+  player1Name = 'player 1',
+  player2Name = 'player 2'
+) {
+  const players = [
+    {
+      name: player1Name,
+      token: 'x',
+      score: 0
+    },
+    {
+      name: player2Name,
+      token: 'o',
+      score: 0
+    }
+
+  ];
+
+  const dialog = document.querySelector('dialog');
+
+  let activePlayer = players[0];
+
+  const switchPlayerTurn = () => {
+    activePlayer = (activePlayer === players[0]) ? players[1] : players[0];
   }
 
-  const end = function() {
-    // stuff here
+  const getActivePlayer = () => activePlayer;
+
+  const getScores = () => {
+    return [players[0].score, players[1].score]
   }
 
-  const checkTurn = function(array) {
-    // stuff jere
+  const playRound = (index) => {
+    if (!gameBoard.dropToken(index, getActivePlayer().token)) return;
+    if (checkWin()) {
+      getActivePlayer().score++
+      dialog.showModal();
+    } else {
+      switchPlayerTurn();
+    }
   }
 
-  const checkWinOrTie = function() {
-    // stuff here
+  const checkWin = () => {
+    const boardArray = gameBoard.getBoard();
+    const winConditions = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ]
+
+    for (let i = 0; i <= 7; i++) {
+      const winCondition = winConditions[i];
+
+      let a = boardArray[winCondition[0]].getValue();
+      let b = boardArray[winCondition[1]].getValue();
+      let c = boardArray[winCondition[2]].getValue();
+
+      if (a === 0 || b === 0 || c === 0) {
+        continue
+      }
+
+      if (a === b && b === c) {
+        return true
+      }
+    }
+    return false;
   }
+
+  const reset = () => {
+    gameBoard.clearBoard();
+    gameBoard.setupBoard();
+    activePlayer = players[0];
+  }
+
+  const newGame = () => {
+    reset();
+    players[0].score = 0;
+    players[1].score = 0;
+  }
+
+  return { getActivePlayer, getScores, playRound, reset, newGame }
+}
+
+
+const displayController = (function() {
+  const game = GameController();
+
+  const boardDiv = document.querySelector('.board');
+  const playerTurnDiv = document.querySelector('.playerTurn');
+  const score = document.querySelector('.score');
+  const dialog = document.querySelector('dialog');
+  const anotherRoundButton = document.querySelector('.another');
+  const reset = document.querySelector('.reset');
+
+  const updateScreen = () => {
+    boardDiv.textContent = '';
+    score.textContent = `Player 1: ${game.getScores()[0]} Player 2: ${game.getScores()[1]}`
+
+    const board = gameBoard.getBoard();
+    const currentPlayer = game.getActivePlayer();
+
+    playerTurnDiv.textContent = `Player ${currentPlayer.name}'s turn now`;
+
+    board.forEach((square, index) => {
+      const button = document.createElement('button');
+      button.classList.add('cell');
+      button.dataset.index = index;
+      button.textContent = board[index].getValue() === 0 ? '' : board[index].getValue();
+
+      boardDiv.appendChild(button);
+    })
+  }
+
+  const removeBoardChildren = () => {
+    while (boardDiv.firstChild) {
+      boardDiv.removeChild(boardDiv.firstChild)
+    }
+  }
+
+  function clickHandler(e) {
+    const selectedCell = e.target.dataset.index;
+
+    if (!selectedCell) return;
+
+    game.playRound(selectedCell);
+    updateScreen();
+  }
+
+  boardDiv.addEventListener('click', clickHandler)
+
+  anotherRoundButton.addEventListener('click', () => {
+    dialog.close();
+    game.reset();
+    removeBoardChildren();
+    updateScreen();
+  })
+
+  reset.addEventListener('click', () => {
+    game.newGame();
+    removeBoardChildren();
+    updateScreen();
+  })
+
+  updateScreen();
+
 })();
